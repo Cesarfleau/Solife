@@ -1,0 +1,129 @@
+// basé sur : https://ouiaremakers.com/posts/tutoriel-diy-tracker-solaire
+// include Servo library
+#include <Servo.h>
+
+// horizontal servo
+Servo horizontal1;
+Servo horizontal2;
+int servoh = 90;
+
+#define servohLimitHigh  180
+#define servohLimitLow  0
+
+Servo vertical1;
+Servo vertical2;
+Servo vertical3;
+Servo vertical4;
+Servo vertical5;
+Servo vertical6;
+
+int servov = 90;
+
+#define servovLimitHigh  180
+#define servovLimitLow   0
+
+
+// LDR pin connections
+#define ldrTR  0 // LDR top right
+#define ldrBR  1 // LDR top left
+#define ldrTL  2 // LDR bottom right
+#define ldrBL  3 // LDR bottom left
+
+void moveH()
+{
+     horizontal1.write(servoh);
+     horizontal2.write(180-servoh);
+}
+void moveV()
+{
+  vertical1.write(servov);
+  vertical2.write(servov);
+  vertical3.write(servov);
+  vertical4.write(180-servov);
+  vertical5.write(180-servov);
+  vertical6.write(180-servov);
+}
+void servoSetUp()
+{
+  horizontal1.attach(2);
+  horizontal2.attach(3);
+  
+  vertical1.attach(5);
+  vertical2.attach(6);
+  vertical3.attach(7);
+
+  vertical4.attach(8);
+  vertical5.attach(9);
+  vertical6.attach(10);
+  
+}
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(ldrTR, INPUT);
+  pinMode(ldrTL, INPUT);
+  pinMode(ldrTR, INPUT);
+  pinMode(ldrBL, INPUT);
+  servoSetUp();
+  moveH();
+  moveV();
+}
+
+
+void loop() {
+
+  int tr = analogRead(ldrTR); // top right
+  int tl = analogRead(ldrTL); // top left
+  int br = analogRead(ldrBR); // bottom right
+  int bl = analogRead(ldrBL); // bottom left
+
+  int dtime = 0; // change for debugging only
+  int tol = 50;
+
+  int avt = (tl + tr) / 2; // average value top
+  int avd = (bl + br) / 2; // average value bottom
+  int avl = (tl + bl) / 2; // average value left
+  int avr = (tr + br) / 2; // average value right
+
+  int dvert = avt - avd;  // check the difference of up and down
+  int dhoriz = avl - avr; // check the difference of left and right
+
+  // check if the difference is in the tolerance else change vertical angle
+  if (-1 * tol > dvert || dvert > tol) {
+    if (avt > avd) {
+      servov = servov+5;
+      if (servov > servovLimitHigh) {
+        servov = servovLimitHigh;
+      }
+    }
+    else if (avt < avd) {
+      servov = servov-5;
+      if (servov < servovLimitLow) {
+        servov = servovLimitLow;
+      }
+    }
+    moveV();
+  }
+
+   // check if the difference is in the tolerance else change vertical angle
+  if (-1 * tol > dhoriz || dhoriz > tol) {
+    if (avl > avr) {
+      servov = servov+5;
+      if (servov > servovLimitHigh) {
+        servov = servovLimitHigh;
+      }
+    }
+    else if (avl < avr) {
+      servoh = servoh-5;
+      if (servoh < servovLimitLow) {
+        servoh = servovLimitLow;
+      }
+    }
+    moveH();
+  }
+
+
+  
+  delay(dtime);
+  
+}
